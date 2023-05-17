@@ -1,17 +1,31 @@
-<h2>Rectangle Creator</h2>
-<p>Count: <input id="count" value="5"></p>
-<button id="create">Create</button>
-<button id="cancel">Cancel</button>
+<div id="list"></div>
+<button id="scan-button">Scan Document</button>
+
 <script>
+document.getElementById('scan-button').onclick = function() {
+  parent.postMessage({ pluginMessage: { type: 'scan-document' } }, '*');
+};
 
-document.getElementById('create').onclick = () => {
-  const textbox = document.getElementById('count');
-  const count = parseInt(textbox.value, 10);
-  parent.postMessage({ pluginMessage: { type: 'create-rectangles', count } }, '*')
-}
-
-document.getElementById('cancel').onclick = () => {
-  parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
-}
-
+window.onmessage = function(event) {
+  if (event.data.pluginMessage.type === 'distance-data') {
+    const list = document.getElementById('list');
+    list.innerHTML = '';
+    for (const item of event.data.pluginMessage.data) {
+      const li = document.createElement('li');
+      li.textContent = `(${item.node1.name}, ${item.node2.name}) = ${item.distance}px`;
+      li.style.cursor = 'pointer';
+      li.onclick = function() {
+        parent.postMessage({ pluginMessage: { type: 'inspect-nodes', ids: [item.node1.id, item.node2.id] } }, '*');
+      };
+      list.appendChild(li);
+    }
+  }
+};
 </script>
+
+<style>
+#list {
+  height: 200px;
+  overflow-y: scroll;
+}
+</style>
